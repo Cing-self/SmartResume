@@ -7,6 +7,14 @@
         "firebase-tools@latest",
         "experimental:mcp"
       ]
+    },
+    "mulerun-docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mulerun.com/docs/mcp"
+      ]
     }
   }
 }
