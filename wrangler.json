@@ -1,0 +1,7 @@
+{
+  "name": "smart-resume",
+  "compatibility_date": "2024-12-15",
+  "assets": {
+    "directory": "./out"
+  }
+}
