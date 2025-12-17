@@ -56,7 +56,7 @@ import { searchJobs } from '@/lib/apify-service';
 import type { ApifyJobResult } from '@/types/resume';
 
 // --- Mulerun AI Integration ---
-const generateAIContent = async (prompt) => {
+const generateAIContent = async (prompt: string): Promise<string> => {
   const API_BASE = process.env.NEXT_PUBLIC_MULERUN_API_BASE || 'https://api.mulerun.ai';
   const API_KEY = process.env.NEXT_PUBLIC_MULERUN_API_KEY;
 
@@ -92,7 +92,7 @@ const generateAIContent = async (prompt) => {
 };
 
 // Helper: Build Prompts
-const buildPrompt = (type, data, context) => {
+const buildPrompt = (type: string, data: any, context?: any): string => {
   const dataStr = typeof data === 'string' ? data : JSON.stringify(data);
 
   if (type === 'parse_resume') {
@@ -176,7 +176,31 @@ const buildPrompt = (type, data, context) => {
 
 // --- Components ---
 
-const InputField = ({ label, value, onChange, placeholder, type = "text", multiline = false, onOptimize, isOptimizing, suggestions, className, icon: Icon }) => (
+const InputField = ({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  multiline = false,
+  onOptimize,
+  isOptimizing,
+  suggestions,
+  className,
+  icon: Icon
+}: {
+  label?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+  multiline?: boolean;
+  onOptimize?: () => void;
+  isOptimizing?: boolean;
+  suggestions?: string[];
+  className?: string;
+  icon?: any;
+}) => (
   <div className={`mb-4 ${className || ''}`}>
     <div className="flex justify-between items-center mb-1">
       <label className="block text-sm font-medium text-gray-700 flex items-center">
@@ -234,7 +258,19 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", multil
   </div>
 );
 
-const SelectField = ({ label, value, onChange, options, icon: Icon }) => (
+const SelectField = ({
+  label,
+  value,
+  onChange,
+  options,
+  icon: Icon
+}: {
+  label?: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  icon?: any;
+}) => (
   <div className="mb-4">
     <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
       {Icon && <Icon className="w-3.5 h-3.5 mr-1.5 text-gray-400" />}
@@ -254,7 +290,7 @@ const SelectField = ({ label, value, onChange, options, icon: Icon }) => (
 );
 
 // Page Break Indicator
-const PageBreakIndicator = ({ pageNum }) => (
+const PageBreakIndicator = ({ pageNum }: { pageNum: number }) => (
   <div
     className="absolute left-0 right-0 border-b border-red-300 border-dashed print:hidden flex items-center justify-end pr-2 pointer-events-none z-10"
     style={{ top: `${pageNum * 297}mm` }} // A4 height is approx 297mm
@@ -266,7 +302,7 @@ const PageBreakIndicator = ({ pageNum }) => (
 );
 
 // Match Score Gauge
-const MatchScoreGauge = ({ keywords = 0, isOptimized }) => {
+const MatchScoreGauge = ({ keywords = 0, isOptimized }: { keywords?: number; isOptimized?: boolean }) => {
   const score = isOptimized ? Math.min(98, 70 + keywords * 3) : 65;
 
   return (
@@ -499,7 +535,7 @@ export default function SmartResume() {
   };
 
   // Detect user's country (in a real app, this would use geolocation API)
-  const getUserCountry = () => {
+  const getUserCountry = (): string => {
     return 'United States'; // Default fallback
   };
 
@@ -595,9 +631,9 @@ export default function SmartResume() {
   });
 
   // --- Handlers ---
-  const handleProfileChange = (field, value) => setProfile(prev => ({ ...prev, [field]: value }));
+  const handleProfileChange = (field: string, value: any) => setProfile(prev => ({ ...prev, [field]: value }));
   const addExperience = () => setProfile(prev => ({...prev, experience: [...prev.experience, { id: Date.now(), role: '', company: '', period: '', description: '' }]}));
-  const updateExperience = (id, field, value) => {
+  const updateExperience = (id: number, field: string, value: any) => {
     setProfile(prev => ({
       ...prev,
       experience: prev.experience.map(exp => exp.id === id ? { ...exp, [field]: value } : exp)
@@ -606,7 +642,7 @@ export default function SmartResume() {
       setSuggestionsMap(prev => { const next = { ...prev }; delete next[`exp-${id}`]; return next; });
     }
   };
-  const removeExperience = (id) => setProfile(prev => ({...prev, experience: prev.experience.filter(exp => exp.id !== id)}));
+  const removeExperience = (id: number) => setProfile(prev => ({...prev, experience: prev.experience.filter(exp => exp.id !== id)}));
 
   const handleImportResume = async () => {
     if (!importText) return;
@@ -621,7 +657,7 @@ export default function SmartResume() {
     } catch (e) { console.error("Parse failed", e); alert("Parse failed, please try again."); } finally { setIsImporting(false); }
   };
 
-  const handleOptimizeExperience = async (id, text) => {
+  const handleOptimizeExperience = async (id: number, text: string) => {
     const key = `exp-${id}`;
     setOptimizingField(key);
     try {
@@ -707,14 +743,14 @@ export default function SmartResume() {
     }
   };
 
-  const getAvailableRegions = () => {
+  const getAvailableRegions = (): string[] => {
     if (!locationData.country || !locationConfig[locationData.country]) {
       return [];
     }
     return locationConfig[locationData.country].regions;
   };
 
-  const getAvailableCities = () => {
+  const getAvailableCities = (): string[] => {
     if (!locationData.country || !locationData.region ||
         !locationConfig[locationData.country] ||
         !locationConfig[locationData.country].cities[locationData.region]) {
@@ -723,7 +759,7 @@ export default function SmartResume() {
     return locationConfig[locationData.country].cities[locationData.region];
   };
 
-  const getAvailableCompanies = () => {
+  const getAvailableCompanies = (): string[] => {
     if (!companyData.industry || !locationConfig || !locationData.country) {
       return [];
     }
@@ -857,7 +893,7 @@ export default function SmartResume() {
   const handlePrint = () => { window.print(); };
 
   // --- Landing Page Handlers ---
-  const handleLandingImport = async (resumeText) => {
+  const handleLandingImport = async (resumeText: string) => {
     if (!resumeText.trim()) return;
 
     setIsImporting(true);
@@ -893,7 +929,7 @@ export default function SmartResume() {
     }
   };
 
-  const handleStart = (mode) => {
+  const handleStart = (mode: string) => {
     if (mode === 'demo') {
       const demoProfile = {
         name: 'Alex Chen',
@@ -936,13 +972,13 @@ export default function SmartResume() {
   };
 
   // --- Resume Visual Logic ---
-  const getHighlightKeywords = () => {
+  const getHighlightKeywords = (): string[] => {
     if (!jobData.description) return [];
     const words = jobData.description.toLowerCase().split(/\W+/).filter(w => w.length > 4);
     return [...new Set(words)]; // Unique keywords
   };
 
-  const AtsHighlight = ({ text }) => {
+  const AtsHighlight = ({ text }: { text: string }) => {
     if (!visualConfig.showAtsHighlights || !jobData.description) return <>{text}</>;
     const uniqueKeywords = getHighlightKeywords();
     const parts = text.split(new RegExp(`(${uniqueKeywords.join('|')})`, 'gi'));
