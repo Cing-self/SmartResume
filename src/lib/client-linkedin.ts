@@ -7,6 +7,8 @@ export interface LinkedInJobData {
   employmentType?: string;
   seniorityLevel?: string;
   industries?: string[];
+  originalUrl?: string;
+  jobId?: string;
 }
 
 /**

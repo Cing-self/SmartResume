@@ -254,7 +254,19 @@ export async function generateContentWithFallback(
     if (prompt.includes('LinkedIn 职位页面的 HTML 内容')) {
       const htmlMatch = prompt.match(/HTML 内容：\s*(<[\s\S]*>)/);
       if (htmlMatch) {
-        return parseLinkedInHTMLLocally(htmlMatch[1]);
+        const result = parseLinkedInHTMLLocally(htmlMatch[1]);
+        if (result.success && result.data) {
+          // Convert structured data to JSON string for AIResponse<string>
+          return {
+            success: true,
+            data: JSON.stringify(result.data)
+          };
+        }
+        // Handle error case properly
+        return {
+          success: false,
+          error: result.error || 'Failed to parse LinkedIn HTML'
+        };
       }
     }
 

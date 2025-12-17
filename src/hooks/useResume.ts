@@ -47,13 +47,18 @@ const defaultProfile: Profile = {
 
 const defaultJobData: JobData = {
   title: '',
+  company: '',
   location: '',
-  companies: [''],
+  type: '',
+  workMode: '',
+  level: '',
+  salary: '',
+  description: '',
   experienceLevel: 'Junior',
   employmentType: 'Full-time',
   workArrangement: 'On-site',
   postingTime: 'Any Time',
-  description: ''
+  companies: ['']
 };
 
 const defaultAIStatus: AIStatus = {

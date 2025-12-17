@@ -622,7 +622,12 @@ export default function SmartResume() {
     workMode: '',
     level: '',
     salary: '',
-    description: ''
+    description: '',
+    experienceLevel: '',
+    employmentType: '',
+    workArrangement: '',
+    postingTime: '',
+    companies: ['']
   });
 
   const [generatedContent, setGeneratedContent] = useState({
@@ -858,6 +863,11 @@ export default function SmartResume() {
       level: job.seniority_level || '',
       salary: job.salary_range || '',
       description: job.job_description || '',
+      experienceLevel: '',
+      employmentType: job.employment_type || '',
+      workArrangement: '',
+      postingTime: '',
+      companies: [''],
       selectedJob: job
     });
     setIsJobSelected(true);
@@ -886,7 +896,12 @@ export default function SmartResume() {
       workMode: '',
       level: '',
       salary: '',
-      description: ''
+      description: '',
+      experienceLevel: '',
+      employmentType: '',
+      workArrangement: '',
+      postingTime: '',
+      companies: ['']
     });
     setSearchQuery('');
   };

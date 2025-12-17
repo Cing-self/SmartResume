@@ -38,6 +38,11 @@ export interface JobData {
   level: string;
   salary: string;
   description: string;
+  experienceLevel: string;
+  employmentType: string;
+  workArrangement: string;
+  postingTime: string;
+  companies: string[];
   selectedJob?: ApifyJobResult;
 }
 
