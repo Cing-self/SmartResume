@@ -1191,23 +1191,36 @@ export default function SmartResume() {
     setAppState('app');
   };
 
-  const selectJob = (job: ApifyJobResult) => {
-    setJobData({
-      ...jobData,
-      title: job.job_title,
-      company: job.company_name,
-      location: job.location,
-      description: job.job_description,
-      selectedJob: job
-    });
-    setIsJobSelected(true);
+  
+  
+  // --- Resume Visual Logic ---
+  const getHighlightKeywords = (): string[] => {
+    if (!jobData.description) return [];
+    const words = jobData.description.toLowerCase().split(/\W+/).filter(w => w.length > 4);
+    return [...new Set(words)]; // Unique keywords
   };
 
-  const resetJobSelection = () => {
-    setIsJobSelected(false);
-    setSearchQuery('');
-    setSearchResults([]);
+  const AtsHighlight = ({ text }: { text: string }) => {
+    if (!visualConfig.showAtsHighlights || !jobData.description) return <>{text}</>;
+    const uniqueKeywords = getHighlightKeywords();
+    const parts = text.split(new RegExp(`(${uniqueKeywords.join('|')})`, 'gi'));
+    return <>{parts.map((part, i) => uniqueKeywords.includes(part.toLowerCase()) ? <span key={i} className="bg-yellow-200 text-yellow-800 rounded px-0.5 font-medium print:bg-transparent print:text-inherit" title="Keyword Match!">{part}</span> : part)}</>;
   };
+
+  // Render Header
+  const ResumeHeader = () => (
+    <header className={`border-b-2 pb-6 mb-6 ${visualConfig.template === 'classic' ? 'text-center border-gray-300' : 'text-left border-gray-800'}`}>
+      <h1 className="text-4xl font-bold tracking-tight text-gray-900 uppercase mb-2" style={{ color: visualConfig.template === 'modern' ? visualConfig.color : '#111' }}>{profile.name || 'Your Name'}</h1>
+      <p className="text-xl text-gray-600 mb-4">{profile.role || 'Current Role'}</p>
+      <div className={`flex flex-wrap gap-4 text-sm text-gray-600 ${visualConfig.template === 'classic' ? 'justify-center' : ''}`}>
+        {profile.email && <div className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {profile.email}</div>}
+        {profile.phone && <div className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {profile.phone}</div>}
+        {profile.location && <div className="flex items-center"><MapPin className="w-4 h-4 mr-1" /> {profile.location}</div>}
+        {profile.linkedin && <div className="flex items-center"><Linkedin className="w-4 h-4 mr-1" /> {profile.linkedin}</div>}
+        {profile.github && <div className="flex items-center"><Github className="w-4 h-4 mr-1" /> {profile.github}</div>}
+      </div>
+    </header>
+  );
 
   if (appState === 'landing') {
     return (
