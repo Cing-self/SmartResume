@@ -49,11 +49,202 @@ import {
   FileText as FileIcon,
   Scissors,
   RotateCcw,
+  GraduationCap,
   Gauge,
   ExternalLink
 } from 'lucide-react';
 import { searchJobs } from '@/lib/apify-service';
 import type { ApifyJobResult, JobData } from '@/types/resume';
+
+// Helper Components
+const FloatingStepper = ({ currentStep, setStep, steps }: { currentStep: number; setStep: (step: number) => void; steps: any[] }) => {
+  return (
+    <div className="fixed left-6 top-1/2 transform -translate-y-1/2 z-50 print:hidden">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-4">
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Steps</h3>
+        {steps.map((step, index) => (
+          <button
+            key={index + 1}
+            onClick={() => setStep(index + 1)}
+            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+              currentStep === index + 1
+                ? 'bg-indigo-50 text-indigo-600 border border-indigo-200'
+                : currentStep > index + 1
+                ? 'text-green-600 hover:bg-gray-50'
+                : 'text-gray-400 hover:bg-gray-50'
+            }`}
+          >
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+              currentStep > index + 1
+                ? 'bg-green-100 text-green-600'
+                : currentStep === index + 1
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-200 text-gray-500'
+            }`}>
+              {currentStep > index + 1 ? '✓' : index + 1}
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-medium">{step.label}</div>
+              <div className="text-xs text-gray-500">{step.description}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const CollapsibleSection = ({
+  title,
+  icon: Icon,
+  children,
+  defaultOpen = false,
+  action
+}: {
+  title: string;
+  icon: any;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  action?: React.ReactNode;
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center space-x-3">
+          <Icon className="w-5 h-5 text-gray-400" />
+          <h3 className="font-bold text-gray-900">{title}</h3>
+        </div>
+        <div className="flex items-center space-x-2">
+          {action}
+          <ChevronRight className={`w-4 h-4 text-gray-400 transform transition-transform ${
+            isOpen ? 'rotate-90' : ''
+          }`} />
+        </div>
+      </button>
+      {isOpen && (
+        <div className="px-6 pb-6 border-t border-gray-100">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const SimpleInputField = ({ label, value, onChange, multiline = false }: { label: string; value: string; onChange: (value: string) => void; multiline?: boolean }) => {
+  return (
+    <div>
+      <label className="block text-xs font-bold text-gray-400 uppercase mb-2">{label}</label>
+      {multiline ? (
+        <textarea
+          className="w-full p-4 bg-gray-50 border-gray-200 rounded-xl text-sm"
+          rows={4}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <input
+          type="text"
+          className="w-full p-4 bg-gray-50 border-gray-200 rounded-xl text-sm"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+    </div>
+  );
+};
+
+const AnalysisDashboard = ({ analysis, isAnalyzing, onProceed }: { analysis: any; isAnalyzing: boolean; onProceed: () => void }) => {
+  return (
+    <div className="w-full max-w-2xl space-y-8">
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">AI Analysis</h3>
+
+        {isAnalyzing ? (
+          <div className="text-center py-12">
+            <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600">Analyzing your resume against the job description...</p>
+          </div>
+        ) : analysis ? (
+          <div className="space-y-6">
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="font-bold text-green-800 mb-2">Skills Match Analysis</h4>
+              <p className="text-green-700 text-sm">Your resume matches 85% of the required skills</p>
+            </div>
+
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="font-bold text-blue-800 mb-2">Recommendations</h4>
+              <ul className="text-blue-700 text-sm space-y-1">
+                <li>• Add more quantifiable achievements</li>
+                <li>• Include keywords for ATS optimization</li>
+                <li>• Highlight relevant experience</li>
+              </ul>
+            </div>
+
+            <button onClick={onProceed} className="w-full bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-black transition-colors">
+              Generate Tailored Resume
+            </button>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Analysis results will appear here</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ResumePreview = ({ profile, jobData, visualConfig, generatedContent }: { profile: any; jobData: any; visualConfig: any; generatedContent: any }) => {
+  return (
+    <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg">
+      <div className="p-8">
+        <header className="border-b pb-6 mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{profile.name || 'Your Name'}</h1>
+          <p className="text-xl text-gray-600 mb-4">{profile.role || 'Your Role'}</p>
+          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+            <span>{profile.email || 'email@example.com'}</span>
+            <span>{profile.phone || '(555) 123-4567'}</span>
+            <span>{profile.location || 'City, State'}</span>
+          </div>
+        </header>
+
+        <section className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">Professional Summary</h2>
+          <p className="text-gray-700 leading-relaxed">
+            {generatedContent?.tailoredSummary || profile.summary || 'Your professional summary will appear here...'}
+          </p>
+        </section>
+
+        <section className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">Experience</h2>
+          {profile.experience?.map((exp: any) => (
+            <div key={exp.id} className="mb-4">
+              <h3 className="font-bold text-gray-900">{exp.role}</h3>
+              <p className="text-gray-600">{exp.company} • {exp.period}</p>
+              <p className="text-gray-700 mt-2">{exp.description}</p>
+            </div>
+          )) || <p className="text-gray-500">Experience will be shown here</p>}
+        </section>
+
+        <section className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">Skills</h2>
+          <div className="flex flex-wrap gap-2">
+            {profile.skills?.map((skill: string, index: number) => (
+              <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                {skill}
+              </span>
+            )) || <p className="text-gray-500">Skills will be shown here</p>}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+};
 
 // --- Mulerun AI Integration ---
 const generateAIContent = async (prompt: string): Promise<string> => {
@@ -339,6 +530,19 @@ export default function SmartResume() {
   const [activeTab, setActiveTab] = useState('profile'); // profile, job, analysis
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState({ skills: false });
+
+  // Step-based workflow state
+  const [currentStep, setCurrentStep] = useState(1);
+  const [analysisResults, setAnalysisResults] = useState(null);
+  const [isAnalyzingStep, setIsAnalyzingStep] = useState(false);
+
+  // Steps configuration
+  const steps = [
+    { label: 'Profile', description: 'Your information' },
+    { label: 'Target Job', description: 'Job details' },
+    { label: 'AI Analysis', description: 'Review & optimize' },
+    { label: 'Final Result', description: 'Download resume' }
+  ];
 
   // Visual Settings
   const [visualConfig, setVisualConfig] = useState({
@@ -987,34 +1191,23 @@ export default function SmartResume() {
     setAppState('app');
   };
 
-  // --- Resume Visual Logic ---
-  const getHighlightKeywords = (): string[] => {
-    if (!jobData.description) return [];
-    const words = jobData.description.toLowerCase().split(/\W+/).filter(w => w.length > 4);
-    return [...new Set(words)]; // Unique keywords
+  const selectJob = (job: ApifyJobResult) => {
+    setJobData({
+      ...jobData,
+      title: job.job_title,
+      company: job.company_name,
+      location: job.location,
+      description: job.job_description,
+      selectedJob: job
+    });
+    setIsJobSelected(true);
   };
 
-  const AtsHighlight = ({ text }: { text: string }) => {
-    if (!visualConfig.showAtsHighlights || !jobData.description) return <>{text}</>;
-    const uniqueKeywords = getHighlightKeywords();
-    const parts = text.split(new RegExp(`(${uniqueKeywords.join('|')})`, 'gi'));
-    return <>{parts.map((part, i) => uniqueKeywords.includes(part.toLowerCase()) ? <span key={i} className="bg-yellow-200 text-yellow-800 rounded px-0.5 font-medium print:bg-transparent print:text-inherit" title="Keyword Match!">{part}</span> : part)}</>;
+  const resetJobSelection = () => {
+    setIsJobSelected(false);
+    setSearchQuery('');
+    setSearchResults([]);
   };
-
-  // Render Header
-  const ResumeHeader = () => (
-    <header className={`border-b-2 pb-6 mb-6 ${visualConfig.template === 'classic' ? 'text-center border-gray-300' : 'text-left border-gray-800'}`}>
-      <h1 className="text-4xl font-bold tracking-tight text-gray-900 uppercase mb-2" style={{ color: visualConfig.template === 'modern' ? visualConfig.color : '#111' }}>{profile.name || 'Your Name'}</h1>
-      <p className="text-xl text-gray-600 mb-4">{profile.role || 'Current Role'}</p>
-      <div className={`flex flex-wrap gap-4 text-sm text-gray-600 ${visualConfig.template === 'classic' ? 'justify-center' : ''}`}>
-        {profile.email && <div className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {profile.email}</div>}
-        {profile.phone && <div className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {profile.phone}</div>}
-        {profile.location && <div className="flex items-center"><MapPin className="w-4 h-4 mr-1" /> {profile.location}</div>}
-        {profile.linkedin && <div className="flex items-center"><Linkedin className="w-4 h-4 mr-1" /> {profile.linkedin}</div>}
-        {profile.github && <div className="flex items-center"><Github className="w-4 h-4 mr-1" /> {profile.github}</div>}
-      </div>
-    </header>
-  );
 
   if (appState === 'landing') {
     return (
