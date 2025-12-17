@@ -123,7 +123,7 @@ export const ResumeEditor: React.FC = () => {
     updateAIStatus({ isInterviewLoading: true });
 
     try {
-      const result = await aiService.generateInterviewQuestions(profile, jobData.description);
+      const result = await (aiService as any).generateInterviewQuestions(profile, jobData.description);
       if (result.success && result.data) {
         updateGeneratedContent({ interviewQuestions: result.data });
       }
@@ -140,7 +140,7 @@ export const ResumeEditor: React.FC = () => {
     updateAIStatus({ isAnalyzing: { ...aiStatus.isAnalyzing, skills: true } });
 
     try {
-      const result = await aiService.analyzeSkillsGap(profile, jobData.description);
+      const result = await (aiService as any).analyzeSkillsGap(profile, jobData.description);
       if (result.success && result.data) {
         updateGeneratedContent({ skillsAnalysis: result.data });
       }
@@ -345,7 +345,7 @@ export const ResumeEditor: React.FC = () => {
                        <label className="block text-sm font-medium text-gray-700 mb-2">
                          公司名称 <span className="text-gray-400 text-xs">（可添加多个）</span>
                        </label>
-                       {jobData.companies.map((company, index) => (
+                       {(jobData as any).companies?.map((company: string, index: number) => (
                          <div key={index} className="flex gap-2 mb-2">
                            <input
                              type="text"
@@ -354,7 +354,7 @@ export const ResumeEditor: React.FC = () => {
                              onChange={(e) => updateCompany(index, e.target.value)}
                              placeholder="e.g. Google, Microsoft, etc."
                            />
-                           {jobData.companies.length > 1 && (
+                           {(jobData as any).companies?.length > 1 && (
                              <button
                                onClick={() => removeCompany(index)}
                                className="px-3 py-2 text-red-600 hover:text-red-800 border border-red-300 rounded-md hover:bg-red-50"

@@ -116,6 +116,15 @@ export const JobSearchDemo: React.FC<JobSearchDemoProps> = ({
     multiline = false,
     className = "",
     icon: Icon
+  }: {
+    label?: string;
+    value: string;
+    onChange: (value: string) => void;
+    placeholder?: string;
+    type?: string;
+    multiline?: boolean;
+    className?: string;
+    icon?: any;
   }) => (
     <div className={`${className}`}>
       <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center">
@@ -147,6 +156,12 @@ export const JobSearchDemo: React.FC<JobSearchDemoProps> = ({
     onChange,
     options,
     icon: Icon
+  }: {
+    label?: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: string[];
+    icon?: any;
   }) => (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center">

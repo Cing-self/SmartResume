@@ -53,7 +53,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { searchJobs } from '@/lib/apify-service';
-import type { ApifyJobResult } from '@/types/resume';
+import type { ApifyJobResult, JobData } from '@/types/resume';
 
 // --- Mulerun AI Integration ---
 const generateAIContent = async (prompt: string): Promise<string> => {
@@ -87,7 +87,8 @@ const generateAIContent = async (prompt: string): Promise<string> => {
     return text || "AI service temporarily unavailable.";
   } catch (error) {
     console.error("Mulerun AI Error:", error);
-    return `[Demo Mode - API Limited]\n\nAI service unavailable: ${error.message}`;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return `[Demo Mode - API Limited]\n\nAI service unavailable: ${errorMessage}`;
   }
 };
 
@@ -363,7 +364,7 @@ export default function SmartResume() {
     companies: ['']
   });
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<ApifyJobResult[]>([]);
   const [searchError, setSearchError] = useState('');
   const [isJobSelected, setIsJobSelected] = useState(false);
   const [showSearchSettings, setShowSearchSettings] = useState(true);
@@ -558,7 +559,7 @@ export default function SmartResume() {
       localStorage.setItem('jobSearchResults', JSON.stringify(searchResults));
     }
   }, [searchResults]);
-  const [optimizingField, setOptimizingField] = useState(null);
+  const [optimizingField, setOptimizingField] = useState<string | null>(null);
   const [suggestionsMap, setSuggestionsMap] = useState({});
 
   // Data
@@ -606,14 +607,14 @@ export default function SmartResume() {
     skills: false
   });
 
-  const toggleModule = (module: string) => {
+  const toggleModule = (module: keyof typeof collapsedModules) => {
     setCollapsedModules(prev => ({
       ...prev,
       [module]: !prev[module]
     }));
   };
 
-  const [jobData, setJobData] = useState({
+  const [jobData, setJobData] = useState<JobData>({
     title: '',
     company: '',
     location: '',
@@ -639,7 +640,7 @@ export default function SmartResume() {
       experience: prev.experience.map(exp => exp.id === id ? { ...exp, [field]: value } : exp)
     }));
     if (field === 'description') {
-      setSuggestionsMap(prev => { const next = { ...prev }; delete next[`exp-${id}`]; return next; });
+      setSuggestionsMap(prev => { const next = { ...prev } as any; delete next[`exp-${id}`]; return next; });
     }
   };
   const removeExperience = (id: number) => setProfile(prev => ({...prev, experience: prev.experience.filter(exp => exp.id !== id)}));
@@ -744,19 +745,19 @@ export default function SmartResume() {
   };
 
   const getAvailableRegions = (): string[] => {
-    if (!locationData.country || !locationConfig[locationData.country]) {
+    if (!locationData.country || !(locationConfig as any)[locationData.country]) {
       return [];
     }
-    return locationConfig[locationData.country].regions;
+    return (locationConfig as any)[locationData.country].regions;
   };
 
   const getAvailableCities = (): string[] => {
     if (!locationData.country || !locationData.region ||
-        !locationConfig[locationData.country] ||
-        !locationConfig[locationData.country].cities[locationData.region]) {
+        !(locationConfig as any)[locationData.country] ||
+        !(locationConfig as any)[locationData.country].cities[locationData.region]) {
       return [];
     }
-    return locationConfig[locationData.country].cities[locationData.region];
+    return (locationConfig as any)[locationData.country].cities[locationData.region];
   };
 
   const getAvailableCompanies = (): string[] => {
@@ -764,7 +765,7 @@ export default function SmartResume() {
       return [];
     }
 
-    const companies = companyConfig[companyData.industry];
+    const companies = (companyConfig as any)[companyData.industry];
     if (!companies) {
       return [];
     }
@@ -907,17 +908,17 @@ export default function SmartResume() {
         if (match) parsed = JSON.parse(match[0]);
       }
       setProfile(prev => ({
-        name: parsed.name || prev.name,
-        role: parsed.role || prev.role,
-        email: parsed.email || prev.email,
-        phone: parsed.phone || prev.phone,
-        location: parsed.location || prev.location,
-        linkedin: parsed.linkedin || prev.linkedin,
-        github: parsed.github || prev.github,
-        summary: parsed.summary || prev.summary,
-        skills: parsed.skills || prev.skills,
-        experience: parsed.experience || prev.experience,
-        education: parsed.education || prev.education,
+        name: (parsed as any).name || prev.name,
+        role: (parsed as any).role || prev.role,
+        email: (parsed as any).email || prev.email,
+        phone: (parsed as any).phone || prev.phone,
+        location: (parsed as any).location || prev.location,
+        linkedin: (parsed as any).linkedin || prev.linkedin,
+        github: (parsed as any).github || prev.github,
+        summary: (parsed as any).summary || prev.summary,
+        skills: (parsed as any).skills || prev.skills,
+        experience: (parsed as any).experience || prev.experience,
+        education: (parsed as any).education || prev.education,
       }));
       setImportText('');
       setAppState('app');
@@ -1224,7 +1225,7 @@ export default function SmartResume() {
                              <input className="text-right text-sm text-gray-500 bg-transparent border-none p-0 focus:ring-0 placeholder-gray-400" placeholder="Duration (e.g. 2020 - Present)" value={exp.period} onChange={(e) => updateExperience(exp.id, 'period', e.target.value)} />
                           </div>
                           <input className="block w-full text-sm font-medium text-indigo-600 bg-transparent border-none p-0 mb-2 focus:ring-0 placeholder-indigo-300" placeholder="Job Title" value={exp.role} onChange={(e) => updateExperience(exp.id, 'role', e.target.value)} />
-                           <InputField label="Description (AI Polish Available)" multiline value={exp.description} onChange={(v) => updateExperience(exp.id, 'description', v)} onOptimize={() => handleOptimizeExperience(exp.id, exp.description)} isOptimizing={optimizingField === `exp-${exp.id}`} suggestions={suggestionsMap[`exp-${exp.id}`]} className="mb-0 text-sm" />
+                           <InputField label="Description (AI Polish Available)" multiline value={exp.description} onChange={(v) => updateExperience(exp.id, 'description', v)} onOptimize={() => handleOptimizeExperience(exp.id, exp.description)} isOptimizing={optimizingField === `exp-${exp.id}`} suggestions={(suggestionsMap as any)[`exp-${exp.id}`]} className="mb-0 text-sm" />
                         </div>
                       ))}
                       </div>
@@ -1396,12 +1397,12 @@ export default function SmartResume() {
                             className="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-sm"
                             placeholder="Add a skill..."
                             onKeyPress={(e) => {
-                              if (e.key === 'Enter' && e.target.value.trim()) {
+                              if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) {
                                 setProfile(prev => ({
                                   ...prev,
-                                  skills: [...prev.skills, e.target.value.trim()]
+                                  skills: [...prev.skills, (e.target as HTMLInputElement).value.trim()]
                                 }));
-                                e.target.value = '';
+                                (e.target as HTMLInputElement).value = '';
                               }
                             }}
                           />
@@ -1939,13 +1940,13 @@ export default function SmartResume() {
                            <div className="space-y-4">
                               <div>
                                 <span className="text-xs font-bold text-green-600 uppercase">Matching Skills</span>
-                                <div className="flex flex-wrap gap-2 mt-1">{generatedContent.skillsAnalysis.matching_skills.map((s,i) => <span key={i} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-100">{s}</span>)}</div>
+                                <div className="flex flex-wrap gap-2 mt-1">{(generatedContent.skillsAnalysis as any)?.matching_skills?.map((s: string, i: number) => <span key={i} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded border border-green-100">{s}</span>)}</div>
                               </div>
                               <div>
                                 <span className="text-xs font-bold text-red-500 uppercase">Missing / To Improve</span>
-                                <div className="flex flex-wrap gap-2 mt-1">{generatedContent.skillsAnalysis.missing_skills.map((s,i) => <span key={i} className="text-xs bg-red-50 text-red-700 px-2 py-1 rounded border border-red-100">{s}</span>)}</div>
+                                <div className="flex flex-wrap gap-2 mt-1">{(generatedContent.skillsAnalysis as any)?.missing_skills?.map((s: string, i: number) => <span key={i} className="text-xs bg-red-50 text-red-700 px-2 py-1 rounded border border-red-100">{s}</span>)}</div>
                               </div>
-                              <div className="bg-blue-50 p-3 rounded text-sm text-blue-800 italic">"{generatedContent.skillsAnalysis.advice}"</div>
+                              <div className="bg-blue-50 p-3 rounded text-sm text-blue-800 italic">"{(generatedContent.skillsAnalysis as any)?.advice}"</div>
                            </div>
                          )}
                       </div>
@@ -2047,7 +2048,7 @@ export default function SmartResume() {
                   <h2 className="text-lg font-bold uppercase tracking-wider border-b border-gray-300 pb-1 mb-4" style={{ color: visualConfig.color }}>Experience</h2>
                   <div className="space-y-5">
                     {profile.experience.map(exp => {
-                      const tailored = generatedContent.tailoredExperience?.find(t => t.id === exp.id);
+                      const tailored = (generatedContent.tailoredExperience as any)?.find((t: any) => t.id === exp.id);
                       const displayDesc = (!visualConfig.showOriginal && tailored) ? tailored.description : exp.description;
                       const isTailored = !visualConfig.showOriginal && tailored;
 
